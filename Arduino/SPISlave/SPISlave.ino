@@ -11,7 +11,7 @@ const int PIN_MOSI = 11;  // Master Out/Slave In
 const int PIN_CS = 10;    // Chip Select
 
 void setup() {
-  Serial.begin(1000 * 1000);  // 1Mbps
+  Serial.begin(115200);
 
   // Init SPI Pins
   pinMode(PIN_SCL, INPUT);

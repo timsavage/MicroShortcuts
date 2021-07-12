@@ -1,0 +1,10 @@
+# 
+# Configures UDev to create a symlink for the last connected pico to /dev/ttyPico
+#
+# To install:
+#  - Place into your /etc/udev/rules.d/ folder as 99-pico.rules 
+#  - Run `udevadm control --reload` to reload
+#  - Plug in a pico
+#
+
+ACTION=="add", ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="0004", SYMLINK+="ttyPico"

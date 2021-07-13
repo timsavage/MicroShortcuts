@@ -8,13 +8,20 @@
 const int PIN_SCL = 13;   // Clock
 const int PIN_MISO = 12;  // Master In/Slave Out
 const int PIN_MOSI = 11;  // Master Out/Slave In
-const int PIN_CS = 10;    // Chip Select
+const int PIN_CS = 2;     // Chip Select
 
 // Incoming buffer
 byte buffer [100];
 volatile byte pos;
+volatile bool proc;
 
-void setup() {
+void chipSelectISR() 
+{
+  proc = true;
+}
+
+void setup() 
+{
   Serial.begin(115200);
 
   // Init SPI Pins
@@ -26,7 +33,11 @@ void setup() {
   // Enable SPI as Slave
   SPCR |= bit(SPE);
 
-  // Enable interrupts
+  pos = 0;
+  proc = false;
+
+  // Attach interrupts
+  attachInterrupt(digitalPinToInterrupt(PIN_CS), chipSelectISR, RISING);
   SPI.attachInterrupt();
 
   Serial.write("\nSPI Slave Device Setup\n");
@@ -44,8 +55,9 @@ ISR(SPI_STC_vect)
 
 void loop() {
   // If there is data in the buffer write it to the serial port
-  if (pos) {
+  if (proc) {
     Serial.write(buffer, pos);
     pos = 0;
+    proc = false;
   }
 }

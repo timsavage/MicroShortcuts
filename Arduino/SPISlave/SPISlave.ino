@@ -10,6 +10,10 @@ const int PIN_MISO = 12;  // Master In/Slave Out
 const int PIN_MOSI = 11;  // Master Out/Slave In
 const int PIN_CS = 10;    // Chip Select
 
+// Incoming buffer
+byte buffer [100];
+volatile byte pos;
+
 void setup() {
   Serial.begin(115200);
 
@@ -20,23 +24,28 @@ void setup() {
   pinMode(PIN_CS, INPUT);
   
   // Enable SPI as Slave
-  SPCR = (1 << SPE);
+  SPCR |= bit(SPE);
+
+  // Enable interrupts
+  SPI.attachInterrupt();
 
   Serial.write("\nSPI Slave Device Setup\n");
 }
 
-/**
- * Blocking read/write of a byte
- */
-byte spiTransfer(byte value) {
-  SPDR = value;
-  while(!(SPSR & (1<<SPIF)));
-  return SPDR;
+ISR(SPI_STC_vect)
+{
+  byte in = SPDR;
+
+  // Check for space in the buffer
+  if (pos < (sizeof(buffer) - 1)) {
+    buffer[pos++] = in;
+  }
 }
 
-
 void loop() {
-  // Read a value and echo to serial port
-  char value = spiTransfer(0);
-  Serial.write(value);
+  // If there is data in the buffer write it to the serial port
+  if (pos) {
+    Serial.write(buffer, pos);
+    pos = 0;
+  }
 }
